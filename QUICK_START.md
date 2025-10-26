@@ -19,9 +19,26 @@ git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
 git push -u origin main
 ```
 
-## 배포하기 (Railway 추천 - 가장 쉬움)
+## 배포하기
 
-### Railway 배포 (5분 완료)
+### Vercel 배포 (가장 빠름 - 2분)
+
+1. **Vercel 가입**: https://vercel.com (GitHub 계정으로)
+2. **New Project** 클릭
+3. GitHub 저장소 선택
+4. **환경 변수 추가**:
+   - `SUPABASE_URL`: Supabase 프로젝트 URL
+   - `SUPABASE_KEY`: Supabase anon key
+   - `FLASK_SECRET_KEY`: 아무 랜덤 문자열
+5. **Deploy** 클릭
+6. 완료! 🎉
+
+⚠️ **주의**: Vercel은 서버리스 환경이므로 파일이 `/tmp`에 임시 저장됩니다.
+프로덕션에서는 Supabase Storage 사용을 권장합니다.
+
+📖 **자세한 가이드**: `VERCEL_DEPLOY.md`
+
+### Railway 배포 (파일 저장 지원 - 5분)
 
 1. **Railway 가입**: https://railway.app
 2. **New Project** 클릭

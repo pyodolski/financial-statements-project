@@ -21,28 +21,63 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key')
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['OUTPUT_FOLDER'] = 'outputs'
+
+# Vercel 환경 감지
+IS_VERCEL = os.getenv('VERCEL') == '1' or os.getenv('VERCEL_ENV') is not None
+
+if IS_VERCEL:
+    # Vercel에서는 /tmp 디렉토리 사용
+    app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
+    app.config['OUTPUT_FOLDER'] = '/tmp/outputs'
+    print("✓ Vercel 환경 감지됨 - /tmp 디렉토리 사용")
+else:
+    # 로컬 환경
+    app.config['UPLOAD_FOLDER'] = 'uploads'
+    app.config['OUTPUT_FOLDER'] = 'outputs'
+
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
 
-# 폴더 생성
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
+# 폴더 생성 (에러 무시)
+try:
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
+except Exception as e:
+    print(f"폴더 생성 오류 (무시됨): {e}")
 
 # Supabase 클라이언트
-supabase: Client = create_client(
-    os.getenv('SUPABASE_URL'),
-    os.getenv('SUPABASE_KEY')
-)
+try:
+    supabase_url = os.getenv('SUPABASE_URL')
+    supabase_key = os.getenv('SUPABASE_KEY')
+    
+    if not supabase_url or not supabase_key:
+        raise ValueError("SUPABASE_URL 또는 SUPABASE_KEY가 설정되지 않았습니다")
+    
+    supabase: Client = create_client(supabase_url, supabase_key)
+    print("✓ Supabase 연결 성공")
+except Exception as e:
+    print(f"❌ Supabase 연결 오류: {e}")
+    raise
 
 # main.py의 함수들 가져오기
 from income_statement import generate_income_statement
 
+@app.route('/health')
+def health():
+    """헬스 체크 엔드포인트"""
+    return jsonify({
+        'status': 'healthy',
+        'environment': 'vercel' if IS_VERCEL else 'local',
+        'upload_folder': app.config['UPLOAD_FOLDER'],
+        'output_folder': app.config['OUTPUT_FOLDER']
+    }), 200
+
+
 @app.route('/')
 def index():
     """메인 페이지"""
-    # 오래된 레코드 자동 삭제
-    cleanup_old_records()
+    # 오래된 레코드 자동 삭제 (Vercel이 아닌 경우만)
+    if not IS_VERCEL:
+        cleanup_old_records()
     return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
@@ -186,8 +221,9 @@ def cleanup_scheduler():
 def history():
     """변환 이력 조회"""
     try:
-        # 오래된 레코드 자동 삭제
-        cleanup_old_records()
+        # 오래된 레코드 자동 삭제 (Vercel이 아닌 경우만)
+        if not IS_VERCEL:
+            cleanup_old_records()
         
         response = supabase.table('income_statements').select('*').order('upload_date', desc=True).execute()
         return render_template('history.html', records=response.data)
@@ -412,10 +448,13 @@ def admin_delete_record(record_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# 백그라운드 스케줄러 시작 (개발/프로덕션 모두)
-scheduler_thread = threading.Thread(target=cleanup_scheduler, daemon=True)
-scheduler_thread.start()
-print("✓ 자동 삭제 스케줄러가 시작되었습니다 (매일 실행)")
+# 백그라운드 스케줄러 시작 (Vercel이 아닌 경우만)
+if not IS_VERCEL:
+    scheduler_thread = threading.Thread(target=cleanup_scheduler, daemon=True)
+    scheduler_thread.start()
+    print("✓ 자동 삭제 스케줄러가 시작되었습니다 (매일 실행)")
+else:
+    print("✓ Vercel 환경: Cron Job을 사용하여 자동 삭제가 실행됩니다")
 
 if __name__ == '__main__':
     # 개발 환경

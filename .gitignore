@@ -66,3 +66,7 @@ Thumbs.db
 *.tmp
 *.bak
 *.cache
+
+# Vercel
+.vercel
+.vercel_build_output
