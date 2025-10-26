@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>변환 이력 - 배달 손익계산서 변환기</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <div>
+            <h1>📊 배달 손익계산서 변환기</h1>
+            <p>변환 이력 조회</p>
+          </div>
+          <a
+            href="/admin"
+            style="
+              padding: 10px 20px;
+              background: #2196f3;
+              color: white;
+              text-decoration: none;
+              border-radius: 4px;
+              font-weight: 500;
+              white-space: nowrap;
+            "
+          >
+            🔒 데이터 관리
+          </a>
+        </div>
+      </header>
+
+      <nav>
+        <a href="/">변환하기</a>
+        <a href="/history" class="active">변환 이력</a>
+      </nav>
+
+      <main>
+        <div class="history-section">
+          <h2>변환 이력</h2>
+          <p style="color: #666; margin-bottom: 20px">
+            ℹ️ 변환 이력은 7주(49일) 후 자동으로 삭제됩니다.
+          </p>
+
+          {% if records %}
+          <div class="table-container">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>업로드 날짜</th>
+                  <th>파일명</th>
+                  <th>총매출</th>
+                  <th>매출총이익</th>
+                  <th>입금금액</th>
+                  <th>다운로드</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for record in records %}
+                <tr>
+                  <td>{{ record.upload_date[:10] }}</td>
+                  <td>{{ record.upload_filename }}</td>
+                  <td>{{ "{:,.0f}".format(record.total_sales) }}원</td>
+                  <td class="profit">
+                    {{ "{:,.0f}".format(record.gross_profit) }}원
+                  </td>
+                  <td>{{ "{:,.0f}".format(record.deposit_amount) }}원</td>
+                  <td>
+                    <a
+                      href="/download/{{ record.output_file_path.split('/')[-1] }}"
+                      class="btn-download"
+                    >
+                      📥 다운로드
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="empty-state">
+            <p>아직 변환한 이력이 없습니다.</p>
+            <a href="/" class="btn-primary">첫 변환 시작하기</a>
+          </div>
+          {% endif %}
+        </div>
+      </main>
+
+      <footer>
+        <p>© 2024 배달 손익계산서 변환기</p>
+      </footer>
+    </div>
+  </body>
+</html>

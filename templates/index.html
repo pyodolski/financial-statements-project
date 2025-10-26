@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>배달 손익계산서 변환기</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <div>
+            <h1>📊 배달 손익계산서 변환기</h1>
+            <p>배민 거래 내역을 손익계산서로 자동 변환</p>
+          </div>
+          <a
+            href="/admin"
+            style="
+              padding: 10px 20px;
+              background: #2196f3;
+              color: white;
+              text-decoration: none;
+              border-radius: 4px;
+              font-weight: 500;
+              white-space: nowrap;
+            "
+          >
+            🔒 데이터 관리
+          </a>
+        </div>
+      </header>
+
+      <nav>
+        <a href="/" class="active">변환하기</a>
+        <a href="/history">변환 이력</a>
+      </nav>
+
+      <main>
+        <div
+          style="
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 20px;
+            color: #856404;
+          "
+        >
+          ℹ️ <strong>안내:</strong> 변환된 데이터는 7주(49일) 후 자동으로
+          삭제됩니다. 필요한 파일은 다운로드하여 보관하세요.
+        </div>
+
+        <div class="upload-section">
+          <div class="upload-box" id="uploadBox">
+            <svg
+              width="64"
+              height="64"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <h3>Excel 파일을 드래그하거나 클릭하세요</h3>
+            <p>배민 사장님 사이트에서 다운로드한 거래 내역 파일(.xlsx)</p>
+            <input
+              type="file"
+              id="fileInput"
+              accept=".xlsx"
+              style="display: none"
+            />
+            <button
+              class="btn-primary"
+              onclick="document.getElementById('fileInput').click()"
+            >
+              파일 선택
+            </button>
+          </div>
+
+          <div id="progress" class="progress" style="display: none">
+            <div class="progress-bar"></div>
+            <p>변환 중...</p>
+          </div>
+
+          <div id="result" class="result" style="display: none">
+            <h3>✅ 변환 완료!</h3>
+            <div class="result-summary">
+              <div class="summary-item">
+                <span class="label">총매출</span>
+                <span class="value" id="totalSales">-</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">매출원가</span>
+                <span class="value" id="totalCost">-</span>
+              </div>
+              <div class="summary-item highlight">
+                <span class="label">매출총이익</span>
+                <span class="value" id="grossProfit">-</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">입금금액</span>
+                <span class="value" id="depositAmount">-</span>
+              </div>
+            </div>
+            <button class="btn-primary" id="downloadBtn">
+              📥 손익계산서 다운로드
+            </button>
+            <button class="btn-secondary" onclick="location.reload()">
+              새로 변환하기
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <p>© 2024 배달 손익계산서 변환기</p>
+      </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>
